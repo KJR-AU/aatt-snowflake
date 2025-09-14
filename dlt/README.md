@@ -68,6 +68,10 @@ This will expose a mysql database on port `3036` and an admin dashboard on port
 database. The structure of the data can be explored through the admin 
 dashboard.
 
+3. Confirm the database setup
+
+Navigate to `0.0.0.0:8080`, in the column on the left you should see a database with the name defined in `MYSQL_DATABASE` in `.env`. The database should contain the tables `customers`, `addresses`, `products` etc.
+
 4. Install dependencies
 
 ```
