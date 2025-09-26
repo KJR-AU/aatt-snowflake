@@ -1,0 +1,35 @@
+{
+    "name": "KJR - AATT Snowflake",
+    "build": {
+      "dockerfile": "Dockerfile",
+      "args": {
+        "VARIANT": "3.11-bookworm"
+      }
+    },
+    "runArgs": [
+        "--env-file", "${localWorkspaceFolder}/.devcontainer/.env"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "hashicorp.terraform",
+                "ms-kubernetes-tools.vscode-kubernetes-tools"
+            ],
+            "settings": {
+                "terraform.formatOnSave": true,
+                "terraform.lintOnSave": true,
+                "terraform.useLanguageServer": true,
+                "terminal.integrated.shell.linux": "/bin/bash"
+            }
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/terraform:1": {
+            "version": "1.11.4"
+        }
+    },
+    "mounts": [],
+    "postCreateCommand": [],
+    "remoteUser": "vscode"
+  }
+  
