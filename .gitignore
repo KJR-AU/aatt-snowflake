@@ -88,3 +88,12 @@ Thumbs.db
 # dlt pipelines (if used)
 # ----------------------
 .dlt/
+
+# ----------------------
+# terraform
+# ----------------------
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+*.tfplan.*
