@@ -7,13 +7,13 @@
       }
     },
     "runArgs": [
-        "--env-file", "${localWorkspaceFolder}/.devcontainer/.env"
+        "--env-file", "${localWorkspaceFolder}/dlt/.env",
+        "--env-file", "${localWorkspaceFolder}/ps_rag/.env"
     ],
     "customizations": {
         "vscode": {
             "extensions": [
-                "hashicorp.terraform",
-                "ms-kubernetes-tools.vscode-kubernetes-tools"
+                "hashicorp.terraform"
             ],
             "settings": {
                 "terraform.formatOnSave": true,
