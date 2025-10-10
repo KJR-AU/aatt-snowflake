@@ -1,0 +1,103 @@
+-- Create the demo database
+CREATE DATABASE AATT_SNOWFLAKE_DEMO_DB COMMENT = 'AATT Database for demoing Snowflake';
+
+-- There will be a PUBLIC schema by default!
+
+-- Create a new role so that we can all share access
+-- make sure you are in ACCOUNTAMDIN role! (or a role that can create roles!)
+CREATE ROLE AATT_ROLE ;
+
+
+SHOW USERS;
+
+-- grant the role to DJ, Joe, Mark, Patrick and Uy - you NEED TO use double quotes around the "NAME"
+GRANT ROLE AATT_ROLE TO USER "DHANRAJ.JAYENDRA" ;
+GRANT ROLE AATT_ROLE to USER "JOE.BURTON";
+GRANT ROLE AATT_ROLE to USER "MJPEDERSEN";
+GRANT ROLE AATT_ROLE to USER "PATRICK.VICKY";
+GRANT ROLE AATT_ROLE to USER "ADRIAN.UGRAY";
+
+-- Grant sysadmin access too
+GRANT ROLE AATT_ROLE to ROLE SYSADMIN;
+
+-- Give the role access to :
+--  database
+--  schema
+--  read access
+--  write access
+--  stage creation
+-- file format creation
+--  ensure future tables are also accessible
+GRANT USAGE ON DATABASE AATT_SNOWFLAKE_DEMO_DB TO ROLE AATT_ROLE ;
+GRANT USAGE ON SCHEMA AATT_SNOWFLAKE_DEMO_DB.PUBLIC TO ROLE AATT_ROLE ;
+GRANT SELECT ON ALL TABLES IN SCHEMA AATT_SNOWFLAKE_DEMO_DB.PUBLIC TO ROLE AATT_ROLE ;
+GRANT CREATE TABLE ON SCHEMA AATT_SNOWFLAKE_DEMO_DB.PUBLIC TO ROLE AATT_ROLE ;
+GRANT CREATE VIEW ON SCHEMA AATT_SNOWFLAKE_DEMO_DB.PUBLIC TO ROLE AATT_ROLE ;
+GRANT CREATE STAGE ON SCHEMA AATT_SNOWFLAKE_DEMO_DB.PUBLIC TO ROLE AATT_ROLE ;
+GRANT CREATE FILE FORMAT ON SCHEMA AATT_SNOWFLAKE_DEMO_DB.PUBLIC TO ROLE AATT_ROLE ;
+GRANT SELECT ON FUTURE TABLES IN SCHEMA AATT_SNOWFLAKE_DEMO_DB.PUBLIC TO ROLE AATT_ROLE ;
+
+
+-- AATT RESULTS - Bring them into a stage
+-- we'll use the "cleansed" result table that Patrick had previously created.
+-- switch to aatt_role first
+USE ROLE AATT_ROLE ;
+CREATE STAGE RESULTS_STAGE ;
+
+-- We cant run the comand below within Snowflake - you need to run it within snowsql!!
+
+-- PS C:\Users\adria> snowsql -c trial
+--* SnowSQL * v1.4.4
+--Type SQL statements or !help
+--adrian.ugray#SNOWFLAKE_LEARNING_WH@AATT_SNOWFLAKE_DEMO_DB.PUBLIC>select CURRENT_USER(), CURRENT_ROLE(), CURRENT_WAREHOU
+--                                                                 SE(), CURRENT_DATABASE(), CURRENT_SCHEMA() ;
+--+----------------+----------------+-----------------------+------------------------+------------------+
+--| CURRENT_USER() | CURRENT_ROLE() | CURRENT_WAREHOUSE()   | CURRENT_DATABASE()     | CURRENT_SCHEMA() |
+--|----------------+----------------+-----------------------+------------------------+------------------|
+--| ADRIAN.UGRAY   | AATT_ROLE      | SNOWFLAKE_LEARNING_WH | AATT_SNOWFLAKE_DEMO_DB | PUBLIC           |
+--+----------------+----------------+-----------------------+------------------------+------------------+
+--1 Row(s) produced. Time Elapsed: 0.056s
+--adrian.ugray#SNOWFLAKE_LEARNING_WH@AATT_SNOWFLAKE_DEMO_DB.PUBLIC>
+
+-- Run this command!
+-- PUT file://C:\Users\adria\Downloads\aatt_combined_cleansed.csv @RESULTS_STAGE AUTO_COMPRESS=TRUE OVERWRITE=TRUE;
+
+-- CHECK THE FILE IS THERE WITHIN SNOWFLAKE!
+list @RESULTS_STAGE;
+
+
+-- Load from the stage into a landing table
+-- a) create a file format
+CREATE OR REPLACE FILE FORMAT ff_csv_gz
+  TYPE = CSV
+  FIELD_DELIMITER = ','
+  PARSE_HEADER = TRUE
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  NULL_IF = ('', 'NULL')
+  COMPRESSION = GZIP;
+
+
+-- b) Create a table for the raw data to go into
+CREATE OR REPLACE TABLE AATT_RAW
+USING TEMPLATE (
+  SELECT ARRAY_AGG(OBJECT_CONSTRUCT(*))
+  FROM TABLE(
+    INFER_SCHEMA(
+      LOCATION => '@RESULTS_STAGE',
+      FILE_FORMAT => 'ff_csv_gz',
+      FILES => ('aatt_combined_cleansed.csv.gz')
+    )
+  )
+);
+
+-- c) Load the Data!
+COPY INTO AATT_RAW
+  FROM @RESULTS_STAGE
+  FILE_FORMAT = (FORMAT_NAME = ff_csv_gz)
+  MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE
+  ON_ERROR = 'CONTINUE'
+  FORCE = TRUE;
+
+
+SELECT DISTINCT "verification_time" FROM AATT_RAW
+  

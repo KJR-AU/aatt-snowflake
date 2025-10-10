@@ -1,0 +1,33 @@
+version: 2
+
+sources:
+  - name: raw
+    database: "{{ target.database }}"
+    schema: "{{ target.schema }}"
+    tables:
+      - name: RAW_RESULTS
+        loaded_at_field: result_time
+        freshness:
+          warn_after: {count: 30, period: day}
+          error_after: {count: 90, period: day}
+
+models:
+  - name: stg_results
+    tests:
+      - not_null:
+          column_name: subject_id
+      - accepted_values:
+          column_name: method_norm
+          values: ['Estimation','Verification','Inference']
+      - dbt_utils.expression_is_true:
+          expression: "subject_age_years is null or (subject_age_years between 0 and 110)"
+      - dbt_utils.expression_is_true:
+          expression: "verification_seconds is null or verification_seconds >= 0"
+
+  - name: metrics_gates
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "samples = coalesce(tp,0)+coalesce(tn,0)+coalesce(fp,0)+coalesce(fn,0)"
+      - dbt_utils.expression_is_true:
+          expression: "accuracy between 0 and 1 and fpr between 0 and 1 and fnr between 0 and 1 and tpr between 0 and 1 and tnr between 0 and 1"
+
