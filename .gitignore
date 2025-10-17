@@ -89,3 +89,4 @@ Thumbs.db
 # dlt pipelines (if used)
 # ----------------------
 .dlt/
+dbt/dbt_project/.user.yml
