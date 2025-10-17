@@ -4,7 +4,7 @@ This sub-folder contains a sample worksheet that can be copied into a new worksh
 It does the following:
 
 ```
-    NOTE: Ensur you are in the SYSADMIN role to be able to create the database and the role
+    NOTE: Ensure you are in the SYSADMIN role to be able to create the database and the role
 ```
 
 ### Create Database

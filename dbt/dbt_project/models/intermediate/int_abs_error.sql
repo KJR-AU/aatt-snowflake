@@ -1,7 +1,7 @@
 {% set raw_rel = adapter.get_relation(
     database=target.database,
     schema=target.schema,
-    identifier='RAW_RESULTS'
+    identifier='AATT_RAW'
 ) %}
 
 {% set raw_cols = adapter.get_columns_in_relation(raw_rel) %}
@@ -28,7 +28,7 @@ raw_pred as (
     {% else %}
       null::float as predicted_age_years
     {% endif %}
-  from {{ target.database }}.{{ target.schema }}.RAW_RESULTS
+  from {{ target.database }}.{{ target.schema }}.AATT_RAW
 ),
 
 joined as (

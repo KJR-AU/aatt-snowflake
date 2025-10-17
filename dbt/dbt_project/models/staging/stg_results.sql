@@ -1,7 +1,7 @@
 -- models/staging/stg_results.sql
 
 with raw as (
-  select * from {{ target.database }}.{{ target.schema }}.RAW_RESULTS
+  select * from {{ target.database }}.{{ target.schema }}.AATT_RAW
 ),
 
 typed as (
