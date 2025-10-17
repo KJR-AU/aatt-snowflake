@@ -25,6 +25,11 @@
 * Ensuring least-privilege policies and data compliance
 * Security regression testing for multi-user Snowflake deployments
 
+**Infrastructure Creation**
+
+* Use of **Terraform** for Infrastructure as Code establishment
+* Use of Worksheets to run SnowPark SQL database/table/view/role creation
+
 
 ### **Application & Visualization QA**
 

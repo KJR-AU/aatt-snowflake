@@ -5,7 +5,7 @@ sources:
     database: "{{ target.database }}"
     schema: "{{ target.schema }}"
     tables:
-      - name: RAW_RESULTS
+      - name: AATT_RAW
         loaded_at_field: result_time
         freshness:
           warn_after: {count: 30, period: day}
