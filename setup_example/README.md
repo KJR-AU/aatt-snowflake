@@ -1,11 +1,11 @@
 ## Setup Example
 This sub-folder contains a sample worksheet that can be copied into a new worksheet in Snowflake to create a test AATT database.
 
-It does the following:
-
 ```
     NOTE: Ensure you are in the SYSADMIN role to be able to create the database and the role
 ```
+
+It does the following:
 
 ### Create Database
 * Create a database called `AATT_SNOWFLAKE_DEMO_DB`
@@ -32,7 +32,18 @@ It does the following:
 ```
 
 ### Load the file into a Landing Table
-* Create a fileformat
+
+```
+    NOTE: In order to ensure unquoted column names for simpler dbt code, it is recommended that the header fields contain no spaces (use underscores) and are in upper case. A simple Python script or even tools such as Notepad++ can handle this easily.
+```
+
+* Creates 2 file formats
+  * compressed csv with a header to be parsed for inferring the schema
+  * compressed csv without parsing the header to load data
+* Create a table using the raw csv and the "parse header" file format which will infer columns
+* Load the data using the raw csv and the "no parse header" file format. Ensure the header record is skipped.
+
+ 
 
 
 
