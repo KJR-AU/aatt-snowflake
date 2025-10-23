@@ -36,4 +36,10 @@ models:
       +materialized: view
     staging:
       +materialized: view
-    
+    base_results:
+      +materialized: table
+    no_gate:
+      +materialized: view
+    gate_13:
+      +materialized: view
+
