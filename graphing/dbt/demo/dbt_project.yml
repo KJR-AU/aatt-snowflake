@@ -44,4 +44,6 @@ models:
       +materialized: view
     gate_13:
       +materialized: view
+    estimation:
+      +materialized: view
 

@@ -2,5 +2,5 @@
 
 SELECT
     *
-FROM {{ ref('clean_with_type') }}
+FROM {{ ref('clean_with_time_in_seconds') }}
 WHERE method in ('Estimation', 'Validation')
