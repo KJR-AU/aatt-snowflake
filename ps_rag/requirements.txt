@@ -40,3 +40,14 @@ typing-inspection==0.4.1
 typing_extensions==4.15.0
 tzlocal==5.3.1
 urllib3==2.5.0
+trulens==1.0.1
+trulens-apps-langchain==1.0.1
+trulens-apps-llamaindex==1.0.1
+trulens-benchmark==1.0.1
+trulens-core==1.5.3
+trulens-dashboard==1.5.3
+trulens-feedback==1.5.3
+trulens-otel-semconv==1.5.3
+trulens-providers-litellm==1.0.1
+trulens-providers-openai==1.0.1
+trulens_eval==1.5.3
