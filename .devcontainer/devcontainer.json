@@ -26,9 +26,17 @@
     "features": {
         "ghcr.io/devcontainers/features/terraform:1": {
             "version": "1.11.4"
-        }
+        },
+        "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+            "version": "1.30.0",
+            "helmVersion": "latest"
+        },
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+        "ghcr.io/va-h/devcontainers-features/uv:1": {}
     },
-    "mounts": [],
+    "mounts": [
+        "source=${localEnv:HOME}/.kube/config,target=/home/vscode/.kube/config,type=bind,consistency=cached"
+    ],
     "postCreateCommand": [],
     "remoteUser": "vscode"
   }
