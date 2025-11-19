@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ps-rag.chroma.name" . }}
+  labels:
+    {{- include "ps-rag.labels" . | nindent 4 }}
+    app.kubernetes.io/component: chroma
+spec:
+  replicas: {{ .Values.chroma.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "ps-rag.chroma.name" . }}
+      app.kubernetes.io/component: chroma
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "ps-rag.chroma.name" . }}
+        app.kubernetes.io/component: chroma
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: chromadb
+          image: "{{ .Values.chroma.image.repository }}:{{ .Values.chroma.image.tag }}"
+          imagePullPolicy: {{ .Values.chroma.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.chroma.service.port }}
+          env:
+            {{- $env := .Values.chroma.env }}
+            {{- range $key := keys $env | sortAlpha }}
+            - name: {{ $key }}
+              value: {{ index $env $key | quote }}
+            {{- end }}
+          volumeMounts:
+            - name: chroma-storage
+              mountPath: {{ .Values.chroma.env.PERSIST_DIRECTORY | default "/data" }}
+      volumes:
+        - name: chroma-storage
+          persistentVolumeClaim:
+            claimName: {{ if .Values.chroma.persistence.existingClaim }}{{ .Values.chroma.persistence.existingClaim }}{{ else }}{{ include "ps-rag.chroma.pvcName" . }}{{ end }}

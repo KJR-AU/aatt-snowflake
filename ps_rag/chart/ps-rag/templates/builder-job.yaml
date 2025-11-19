@@ -1,0 +1,49 @@
+{{- if .Values.builderJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "ps-rag.builderJob.name" . }}
+  labels:
+    {{- include "ps-rag.labels" . | nindent 4 }}
+    app.kubernetes.io/component: builder
+spec:
+  backoffLimit: {{ .Values.builderJob.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "ps-rag.builderJob.name" . }}
+        app.kubernetes.io/component: builder
+    spec:
+      restartPolicy: Never
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: wait-for-chroma
+          image: curlimages/curl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for Chroma…"
+              until curl -s http://{{ include "ps-rag.chroma.serviceName" . }}:{{ .Values.chroma.service.port }}/api/v1/heartbeat > /dev/null; do
+                echo "Chroma not ready yet…"
+                sleep 3
+              done
+              echo "Chroma is ready!"
+      containers:
+        - name: builder
+          image: "{{ .Values.builderJob.image.repository }}:{{ .Values.builderJob.image.tag }}"
+          imagePullPolicy: {{ .Values.builderJob.image.pullPolicy }}
+          env:
+            {{- $env := .Values.builderJob.env }}
+            {{- range $key := keys $env | sortAlpha }}
+            - name: {{ $key }}
+              value: {{ index $env $key | quote }}
+            {{- end }}
+            {{- with .Values.global.openai.apiKey }}
+            - name: OPENAI_API_KEY
+              value: {{ . | quote }}
+            {{- end }}
+{{- end }}

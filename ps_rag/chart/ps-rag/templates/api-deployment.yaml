@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ps-rag.api.name" . }}
+  labels:
+    {{- include "ps-rag.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "ps-rag.api.name" . }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "ps-rag.api.name" . }}
+        app.kubernetes.io/component: api
+    spec:
+      serviceAccountName: {{ include "ps-rag.serviceAccountName" . }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.builderJob.enabled }}
+      initContainers:
+        - name: wait-for-builder-job
+          image: groundnuty/k8s-wait-for:v1.4
+          args:
+            - job
+            - {{ include "ps-rag.builderJob.name" . }}
+      {{- end }}
+      containers:
+        - name: ps-rag-api
+          image: "{{ .Values.api.image.repository }}:{{ default .Chart.AppVersion .Values.api.image.tag }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+          env:
+            {{- $env := .Values.api.env }}
+            {{- range $key := keys $env | sortAlpha }}
+            - name: {{ $key }}
+              value: {{ index $env $key | quote }}
+            {{- end }}
+            {{- with .Values.global.openai.apiKey }}
+            - name: OPENAI_API_KEY
+              value: {{ . | quote }}
+            {{- end }}
+          {{- with .Values.api.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.api.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.api.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.api.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

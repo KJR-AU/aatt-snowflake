@@ -1,0 +1,21 @@
+FROM python:3.11-slim AS base
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY src/ ./src
+COPY docs ./docs
+
+COPY build_vector_db.py .
+
+RUN pip install chromadb pypdf2 python-docx
+
+EXPOSE 8080
+
+CMD ["python", "build_vector_db.py"]

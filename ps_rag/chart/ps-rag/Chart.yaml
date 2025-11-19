@@ -1,0 +1,6 @@
+apiVersion: v2
+name: ps-rag
+description: Helm chart for the PS RAG API, Chroma vector DB, and supporting jobs
+version: 0.1.0
+appVersion: "0.1.0"
+type: application

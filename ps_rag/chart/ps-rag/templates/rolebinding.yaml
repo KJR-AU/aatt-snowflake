@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ printf "%s-rolebinding" (include "ps-rag.api.name" .) | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "ps-rag.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "ps-rag.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ printf "%s-role" (include "ps-rag.api.name" .) | trunc 63 | trimSuffix "-" }}

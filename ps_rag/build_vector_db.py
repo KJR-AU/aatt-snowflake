@@ -1,67 +1,61 @@
-# Register UDTF for data flow from Snowflake Internal Stage to Vector Database
-from snowflake.snowpark.types import StringType, StructField, StructType
-from snowflake.snowpark.functions import udtf
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from snowflake.snowpark.files import SnowflakeFile
-import PyPDF2, io
-import pandas as pd
-from session import session
-from dotenv import load_dotenv
+from chromadb import HttpClient
+from chromadb.errors import NotFoundError
+from pathlib import Path
+import src.util as util
+import uuid
+import sys
 import os
 
-load_dotenv()
+COLLECTION_NAME = os.getenv("COLLECTION_NAME", "aatt_practice_statements")
+DB_HOST = os.getenv("CHROMA_HOST", "localhost")
+DB_PORT = os.getenv("CHROMA_PORT", 8000)
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "250"))
+CHUNK_OVERLAP = int(os.getenv("CHUNK_SIZE", "25"))
 
-# @udtf(session=session,
-#       output_schema=StructType([StructField("chunk", StringType())]),
-#       input_types=[StringType()],
-#       name=os.environ.get("SNOWFLAKE_EXTRACT_FUNCTION_NAME", "PDF_TEXT_CHUNKER"),
-#       is_permanent=True,
-#       stage_location="@pdf",
-#       replace=True,
-#       packages=["langchain==0.3.25", 
-#                 "PyPDF2==3.0.1", 
-#                 "snowflake-snowpark-python==1.38.0",]
-#       )
-# class pdf_text_chunker:
+root_dir = Path("./docs/raw")
+sub_dirs = [
+    "AE/Practice Statements",
+    "AI/Practice statements",
+    "AV/Practice statements AV",
+    "Other/Practice Statements",
+    "PC (Consent - Control)/Practice statements"
+]
+try:
+    client = HttpClient(host=DB_HOST, port=DB_PORT)
+except NotFoundError:
+    print(f"Unable to reach the chroma server at {DB_HOST}:{DB_PORT} Ensure the server is running and accessible.")
+    sys.exit(1)
 
-#     def read_pdf(self, file_url):
+try:
+    client.delete_collection(name=COLLECTION_NAME)
+except Exception as e:
+    print(f"Encountered {type(e).__name__}: {e}")
+
+collection = client.get_or_create_collection(name=COLLECTION_NAME)
+
+
+doc_content = {}
+files_to_process = list(util.iter_files_in_subpaths(root_dir, sub_dirs))
+
+for i, f in enumerate(files_to_process):
+    print(f"Processing file {i+1} of {len(files_to_process)}: {f}")
+    category = f.parent.parent.name
+    match f.suffix:
+        case ".pdf":
+            text = util.extract_text_from_pdf(f)
+        case ".docx":
+            text = util.extract_text_from_docx(f)
+        case _:
+            continue
+    if text.count("\n") > 500:
+        text = text.replace("\n", "")
+    doc_content[str(f)] = text
     
-#         with SnowflakeFile.open(file_url, 'rb') as f:
-#             buffer = io.BytesIO(f.readall())
-            
-#         reader = PyPDF2.PdfReader(buffer)   
-#         text = ""
-#         for page in reader.pages:
-#             text += page.extract_text()
-#         return text
-
-#     def process(self, file_url):
-
-#         text = self.read_pdf(file_url)
-        
-#         text_splitter = RecursiveCharacterTextSplitter(
-#             chunk_size = 4000, 
-#             chunk_overlap  = 400, 
-#             length_function = len
-#         )
-    
-#         chunks = text_splitter.split_text(text)
-#         df = pd.DataFrame(chunks, columns=['chunks'])
-#         yield from df.itertuples(index=False, name=None)
-
-
-def create_vector_db_table(database: str, schema: str, table: str, function: str):
-    query = f'''
-    CREATE OR REPLACE TABLE {database}.{schema}.{table} AS 
-    SELECT t.$1 AS file_path, c.chunk, SNOWFLAKE.CORTEX.EMBED_TEXT_768('e5-base-v2', c.chunk) as chunk_vec
-    FROM (
-        SELECT distinct METADATA$FILENAME as file_name
-        FROM @{database}.{schema}.PDF t
-    ) t,
-    LATERAL {database}.{schema}.{function}(build_scoped_file_url(@"{database}"."{schema}"."PDF", t.$1)) c;
-    '''
-    print(query)
-    session.sql(query).collect()
-
-if __name__ == "__main__":
-    create_vector_db_table(os.environ.get("SNOWFLAKE_DATABASE"), os.environ.get("SNOWFLAKE_SCHEMA"), "PDF_VECTOR_DB", "PDF_TEXT_CHUNKER")
+    if (chunks := list(util.chunk_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP))):
+        collection.add(
+            ids=[uuid.uuid4().hex for _ in chunks],
+            documents=chunks,
+            metadatas=[{"source": f.name, "chunk": i, "category": category, "doctype": f.suffix} for _, i in enumerate(chunks)]
+        )
+    else:
+        print(f"No content found in: {f}")

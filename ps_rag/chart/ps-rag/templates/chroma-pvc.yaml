@@ -1,0 +1,18 @@
+{{- if and .Values.chroma.persistence.enabled (not .Values.chroma.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ps-rag.chroma.pvcName" . }}
+  labels:
+    {{- include "ps-rag.labels" . | nindent 4 }}
+    app.kubernetes.io/component: chroma
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.chroma.persistence.size }}
+  {{- if .Values.chroma.persistence.storageClass }}
+  storageClassName: {{ .Values.chroma.persistence.storageClass }}
+  {{- end }}
+{{- end }}
