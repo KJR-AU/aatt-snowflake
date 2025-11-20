@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parents[3] / "ps_rag"))
 from src.client import RAGClient
+from client.client import PracticeStatementRagClient
 import asyncio
 from datetime import datetime
 from ragas.metrics import FactualCorrectness, AnswerAccuracy, AspectCritic
@@ -45,7 +46,8 @@ async def my_experiment(row, client, dataset_name, experiment_name, metrics={}):
     return rtn
 
 async def run_experiment(dataset_name: str, model_name: str, model_temperature: float, prompt_path: str, metrics={}):
-    client = RAGClient(temperature=model_temperature, model_name=model_name, prompt_path=prompt_path)
+    # client = RAGClient(temperature=model_temperature, model_name=model_name, prompt_path=prompt_path)
+    client = PracticeStatementRagClient("http://localhost:8080")
     experiment_name: str = generate_experiment_name(client, dataset_name)
     d = Dataset.load(name=dataset_name, backend="local/csv", root_dir=".")
     return await my_experiment.arun(d, client=client, dataset_name=dataset_name, experiment_name=experiment_name, metrics=metrics)
