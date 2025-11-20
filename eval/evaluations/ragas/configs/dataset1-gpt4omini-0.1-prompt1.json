@@ -1,0 +1,6 @@
+{   
+    "dataset_name": "dataset1",
+    "model_name": "gpt-4o-mini",
+    "model_temperature": 0.1,
+    "prompt_path": "prompts/prompt1.txt"
+}
