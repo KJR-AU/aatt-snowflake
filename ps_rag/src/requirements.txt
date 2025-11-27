@@ -1,10 +1,8 @@
 langchain
 langchain_community
-langchain_huggingface
 langchain_openai
 fastapi
 pydantic
 uvicorn
 chromadb
-sentence-transformers
 langchain-chroma
