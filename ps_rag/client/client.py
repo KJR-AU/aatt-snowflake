@@ -6,14 +6,14 @@ class PracticeStatementRagClient:
         self.endpoint_root: str = endpoint_root
         self.invoke_endpoint: str = f"{endpoint_root}/query"
     
-    def invoke(self, query: str):
-        response = self.send_post_request(self.invoke_endpoint, { "query": query })
+    def invoke(self, query: str, timeout: int = 30):
+        response = self.send_post_request(self.invoke_endpoint, { "query": query }, timeout=timeout)
         if not (answer := response.get("answer")):
             raise ValueError()
         return answer
 
     @staticmethod
-    def send_post_request(url: str, payload: dict, headers: dict | None = None, timeout: int = 10) -> dict[str, str]:
+    def send_post_request(url: str, payload: dict, headers: dict | None = None, timeout: int = 30) -> dict[str, str]:
         """
         Send a POST request and parse the response.
 
