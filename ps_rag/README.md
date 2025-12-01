@@ -21,7 +21,7 @@ This README is written to be **beginner friendly** and explains how to deploy an
 | `src/` | FastAPI RAG service (`api.py`) and LangChain logic |
 | `docs/` + `build_vector_db.py` | Tools to load PDF/DOCX files into Chroma |
 | `chart/ps-rag/` | Helm chart that deploys Chroma, the API, and the optional vector-builder Job |
-| `Dockerfile`, `Dockerfile-vectordb` | Container images for the API and vector database builder |
+| `Dockerfile`, `Dockerfile-retriever`, `Dockerfile-vectordb` | Container images for the API, retriever microservice, and vector database builder |
 | `client/` | Python client for querying the deployed API |
 | `helm-values.yml` | Example values file for Helm |
 
@@ -34,6 +34,7 @@ The easiest way to deploy ChromaDB + the FastAPI RAG service is using Helm.
 ## 1. Build the images
 ```bash
 docker build -t aatt-ps-rag .
+docker build -t aatt-ps-rag-retriever -f Dockerfile-retriever .
 docker build -t aatt-ps-rag-build-vector-db -f Dockerfile-vectordb .
 ```
 
@@ -48,10 +49,19 @@ global:
 
 api:
   env:
+    MODEL_NAME: gpt-4o-mini
+    RETRIEVER_TIMEOUT: "30"
+    RETRIEVER_K: "4"
+
+retriever:
+  env:
     CHROMA_HOST: chroma-service
     CHROMA_PORT: "8000"
-    MODEL_NAME: gpt-4o-mini
+    COLLECTION_NAME: aatt_practice_statements
     EMBEDDING_MODEL: huggingface:all-MiniLM-L6-v2
+    RETRIEVER_K: "4"
+  service:
+    port: 8080
 
 builderJob:
   env:
@@ -67,8 +77,8 @@ chroma:
 
 This file configures:
 
-* The OpenAI model and embeddings
-* Chroma connection details
+* The OpenAI model used by the RAG API
+* The retriever microservice (Chroma connection + default `top-k`)
 * The vector-building job (optional)
 * Persistent storage for Chroma
 
@@ -85,7 +95,8 @@ helm upgrade --install aatt-ps-rag ./chart/ps-rag -f my-values.yml
 Helm will install:
 
 * **ChromaDB Deployment + Service**
-* **FastAPI RAG Deployment**
+* **Retriever Deployment + Service** (FastAPI wrapper around Chroma)
+* **FastAPI RAG Deployment** (automatically points to the retriever Service)
 * **Optional vector-builder Job** (runs once to populate Chroma)
 
 Check the deployment:
