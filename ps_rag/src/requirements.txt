@@ -6,3 +6,4 @@ pydantic
 uvicorn
 chromadb
 langchain-chroma
+requests
