@@ -37,10 +37,22 @@ spec:
           image: "{{ .Values.builderJob.image.repository }}:{{ .Values.builderJob.image.tag }}"
           imagePullPolicy: {{ .Values.builderJob.image.pullPolicy }}
           env:
-            {{- $env := .Values.builderJob.env }}
-            {{- range $key := keys $env | sortAlpha }}
+            - name: CHROMA_HOST
+              value: {{ .Values.retriever.chroma.host | quote }}
+            - name: CHROMA_PORT
+              value: {{ .Values.retriever.chroma.port | quote }}
+            - name: COLLECTION_NAME
+              value: {{ .Values.retriever.chroma.collection | quote }}
+            - name: EMBEDDING_MODEL
+              value: {{ .Values.retriever.embedding_model | quote }}
+            - name: CHUNK_SIZE
+              value: {{ .Values.retriever.chunk_size | quote }}
+            - name: CHUNK_OVERLAP
+              value: {{ .Values.retriever.chunk_overlap | quote }}
+            {{- $builderEnv := default dict .Values.builderJob.env }}
+            {{- range $key := keys $builderEnv | sortAlpha }}
             - name: {{ $key }}
-              value: {{ index $env $key | quote }}
+              value: {{ index $builderEnv $key | quote }}
             {{- end }}
             {{- with .Values.global.openai.apiKey }}
             - name: OPENAI_API_KEY

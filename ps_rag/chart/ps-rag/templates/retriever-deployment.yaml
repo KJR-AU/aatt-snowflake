@@ -31,6 +31,7 @@ spec:
             - job
             - {{ include "ps-rag.builderJob.name" . }}
       {{- end }}
+      {{- $retrieverExtraEnv := default dict .Values.retriever.extraEnv }}
       containers:
         - name: ps-rag-retriever
           image: "{{ .Values.retriever.image.repository }}:{{ default .Chart.AppVersion .Values.retriever.image.tag }}"
@@ -38,10 +39,23 @@ spec:
           ports:
             - containerPort: 8081
           env:
-            {{- $env := .Values.retriever.env }}
-            {{- range $key := keys $env | sortAlpha }}
+            - name: CHROMA_HOST
+              value: {{ .Values.retriever.chroma.host | quote }}
+            - name: CHROMA_PORT
+              value: {{ .Values.retriever.chroma.port | quote }}
+            - name: COLLECTION_NAME
+              value: {{ .Values.retriever.chroma.collection | quote }}
+            - name: EMBEDDING_MODEL
+              value: {{ .Values.retriever.embedding_model | quote }}
+            - name: RETRIEVER_K
+              value: {{ .Values.retriever.top_k | quote }}
+            - name: CHUNK_SIZE
+              value: {{ .Values.retriever.chunk_size | quote }}
+            - name: CHUNK_OVERLAP
+              value: {{ .Values.retriever.chunk_overlap | quote }}
+            {{- range $key := keys $retrieverExtraEnv | sortAlpha }}
             - name: {{ $key }}
-              value: {{ index $env $key | quote }}
+              value: {{ index $retrieverExtraEnv $key | quote }}
             {{- end }}
             {{- with .Values.global.openai.apiKey }}
             - name: OPENAI_API_KEY

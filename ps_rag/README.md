@@ -47,27 +47,15 @@ global:
   openai:
     apiKey: "sk-..."   # Your OpenAI key (do NOT commit real secrets)
 
-api:
-  env:
-    MODEL_NAME: gpt-4o-mini
-    RETRIEVER_TIMEOUT: "30"
-    RETRIEVER_K: "4"
-
 retriever:
-  env:
-    CHROMA_HOST: chroma-service
-    CHROMA_PORT: "8000"
-    COLLECTION_NAME: aatt_practice_statements
-    EMBEDDING_MODEL: huggingface:all-MiniLM-L6-v2
-    RETRIEVER_K: "4"
-  service:
-    port: 8080
+  embedding_model: huggingface:all-MiniLM-L6-v2
+  top_k: 4
+  chunk_size: 5000
+  chunk_overlap: 1000
 
-builderJob:
-  env:
-    CHROMA_HOST: chroma-service
-    CHROMA_PORT: "8000"
-    COLLECTION_NAME: aatt_practice_statements
+rag:
+  model: gpt-4o-mini
+  temperature: 0.1
 
 chroma:
   persistence:

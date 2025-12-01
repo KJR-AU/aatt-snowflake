@@ -18,18 +18,28 @@ api:
     repository: aatt-ps-rag-api
     tag: latest
     pullPolicy: IfNotPresent
-  env:
-    MODEL_NAME: gpt-4o-mini
-    RETRIEVER_TIMEOUT: "30"
-    RETRIEVER_K: "3"
+  env: {}
   resources: {}
   nodeSelector: {}
   tolerations: []
   affinity: {}
 
+rag:
+  model: gpt-4o-mini
+  temperature: 0.1
+
 retriever:
   enabled: true
   replicaCount: 1
+  embedding_model: huggingface:all-MiniLM-L6-v2
+  top_k: 3
+  chunk_size: 5000
+  chunk_overlap: 1000
+  timeout: 30
+  chroma:
+    host: chroma-service
+    port: "8000"
+    collection: aatt_practice_statements
   image:
     repository: aatt-ps-rag-retriever
     tag: latest
@@ -37,13 +47,8 @@ retriever:
   service:
     name: ""
     type: ClusterIP
-    port: 8080
-  env:
-    CHROMA_HOST: chroma-service
-    CHROMA_PORT: "8000"
-    COLLECTION_NAME: aatt_practice_statements
-    EMBEDDING_MODEL: huggingface:all-MiniLM-L6-v2
-    RETRIEVER_K: "3"
+    port: 8081
+  extraEnv: {}
   resources: {}
   nodeSelector: {}
   tolerations: []
@@ -77,7 +82,4 @@ builderJob:
     repository: aatt-ps-rag-build-vector-db
     tag: latest
     pullPolicy: IfNotPresent
-  env:
-    CHROMA_HOST: chroma-service
-    CHROMA_PORT: "8000"
-    COLLECTION_NAME: aatt_practice_statements
+  env: {}

@@ -30,6 +30,8 @@ spec:
             - job
             - {{ include "ps-rag.builderJob.name" . }}
       {{- end }}
+      {{- $apiEnv := default dict .Values.api.env }}
+      {{- $hasRetrieverURL := hasKey $apiEnv "RETRIEVER_URL" }}
       containers:
         - name: ps-rag-api
           image: "{{ .Values.api.image.repository }}:{{ default .Chart.AppVersion .Values.api.image.tag }}"
@@ -37,12 +39,19 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            {{- $env := .Values.api.env }}
-            {{- range $key := keys $env | sortAlpha }}
+            - name: MODEL_NAME
+              value: {{ .Values.rag.model | quote }}
+            - name: MODEL_TEMPERATURE
+              value: {{ printf "%g" .Values.rag.temperature | quote }}
+            - name: RETRIEVER_K
+              value: {{ .Values.retriever.top_k | quote }}
+            - name: RETRIEVER_TIMEOUT
+              value: {{ .Values.retriever.timeout | quote }}
+            {{- range $key := keys $apiEnv | sortAlpha }}
             - name: {{ $key }}
-              value: {{ index $env $key | quote }}
+              value: {{ index $apiEnv $key | quote }}
             {{- end }}
-            {{- if and (not (hasKey $env "RETRIEVER_URL")) .Values.retriever.enabled }}
+            {{- if and (not $hasRetrieverURL) .Values.retriever.enabled }}
             - name: RETRIEVER_URL
               value: "http://{{ include "ps-rag.retriever.serviceName" . }}:{{ .Values.retriever.service.port }}"
             {{- end }}
