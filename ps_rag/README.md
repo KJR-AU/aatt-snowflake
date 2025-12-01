@@ -40,7 +40,7 @@ docker build -t aatt-ps-rag-build-vector-db -f Dockerfile-vectordb .
 
 ## 2. Create a Helm values file
 
-Create `my-values.yml`:
+Create `values.yml`:
 
 ```yaml
 global:
@@ -56,11 +56,6 @@ retriever:
 rag:
   model: gpt-4o-mini
   temperature: 0.1
-
-chroma:
-  persistence:
-    storageClass: hostpath
-    size: 2Gi
 ```
 
 This file configures:
@@ -77,7 +72,7 @@ This file configures:
 From inside the `ps_rag/` directory:
 
 ```bash
-helm upgrade --install aatt-ps-rag ./chart/ps-rag -f my-values.yml
+helm upgrade --install aatt-ps-rag ./chart/ps-rag -f values.yml
 ```
 
 Helm will install:
