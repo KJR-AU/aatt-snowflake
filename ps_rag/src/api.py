@@ -12,10 +12,12 @@ async def lifespan(app: FastAPI):
         print("Initializing RAG client")
         os.getenv("OPENAI_API_KEY")  # ensures validation happens early if missing
         MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
+        MODEL_TEMPERATURE = float(os.getenv("MODEL_TEMPERATURE", "0.1"))
         RETRIEVER_URL = os.getenv("RETRIEVER_URL", "http://localhost:8081")
         RETRIEVER_TIMEOUT = int(os.getenv("RETRIEVER_TIMEOUT", "30"))
         RETRIEVER_K = int(os.getenv("RETRIEVER_K", "3"))
         rag_client = RAGClient(
+            temperature=MODEL_TEMPERATURE,
             model_name=MODEL_NAME,
             prompt_path="./prompt.txt",
             k=RETRIEVER_K,
