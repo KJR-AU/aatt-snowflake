@@ -19,11 +19,31 @@ api:
     tag: latest
     pullPolicy: IfNotPresent
   env:
+    MODEL_NAME: gpt-4o-mini
+    RETRIEVER_TIMEOUT: "30"
+    RETRIEVER_K: "3"
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+retriever:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: aatt-ps-rag-retriever
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    name: ""
+    type: ClusterIP
+    port: 8080
+  env:
     CHROMA_HOST: chroma-service
     CHROMA_PORT: "8000"
     COLLECTION_NAME: aatt_practice_statements
-    MODEL_NAME: gpt-4o-mini
     EMBEDDING_MODEL: huggingface:all-MiniLM-L6-v2
+    RETRIEVER_K: "3"
   resources: {}
   nodeSelector: {}
   tolerations: []

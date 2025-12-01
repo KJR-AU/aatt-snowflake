@@ -31,6 +31,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- printf "%s-api" (include "ps-rag.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "ps-rag.retriever.name" -}}
+{{- printf "%s-retriever" (include "ps-rag.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
 {{- define "ps-rag.chroma.name" -}}
 {{- printf "%s-chroma" (include "ps-rag.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
@@ -45,6 +49,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{- define "ps-rag.chroma.pvcName" -}}
 {{- printf "%s-chroma-pvc" (include "ps-rag.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "ps-rag.retriever.serviceName" -}}
+{{- if .Values.retriever.service.name -}}
+{{- .Values.retriever.service.name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- include "ps-rag.retriever.name" . -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "ps-rag.builderJob.name" -}}

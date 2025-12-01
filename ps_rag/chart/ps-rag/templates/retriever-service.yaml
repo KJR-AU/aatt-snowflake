@@ -1,0 +1,19 @@
+{{- if .Values.retriever.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ps-rag.retriever.serviceName" . }}
+  labels:
+    {{- include "ps-rag.labels" . | nindent 4 }}
+    app.kubernetes.io/component: retriever
+spec:
+  type: {{ .Values.retriever.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ include "ps-rag.retriever.name" . }}
+    app.kubernetes.io/component: retriever
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ .Values.retriever.service.port }}
+      targetPort: 8081
+{{- end }}
