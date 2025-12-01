@@ -31,6 +31,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- printf "%s-api" (include "ps-rag.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "ps-rag.api.serviceName" -}}
+{{- if .Values.api.service.name -}}
+{{- .Values.api.service.name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- include "ps-rag.api.name" . -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "ps-rag.retriever.name" -}}
 {{- printf "%s-retriever" (include "ps-rag.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

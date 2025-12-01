@@ -19,6 +19,11 @@ api:
     tag: latest
     pullPolicy: IfNotPresent
   env: {}
+  service:
+    name: ""
+    type: NodePort
+    port: 8080
+    nodePort: 30080
   resources: {}
   nodeSelector: {}
   tolerations: []
@@ -46,8 +51,9 @@ retriever:
     pullPolicy: IfNotPresent
   service:
     name: ""
-    type: ClusterIP
+    type: NodePort
     port: 8081
+    nodePort: 30081
   extraEnv: {}
   resources: {}
   nodeSelector: {}
