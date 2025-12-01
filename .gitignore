@@ -101,3 +101,5 @@ Thumbs.db
 
 # ----------------------
 dbt/dbt_project/.user.yml
+
+ps_rag/values.yml
