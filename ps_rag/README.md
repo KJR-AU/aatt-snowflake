@@ -58,15 +58,6 @@ rag:
   temperature: 0.1
 ```
 
-This file configures:
-
-* The OpenAI model used by the RAG API
-* The retriever microservice (Chroma connection + default `top-k`)
-* The vector-building job (optional)
-* Persistent storage for Chroma
-
----
-
 ## 3. Deploy the stack using Helm
 
 From inside the `ps_rag/` directory:
@@ -77,31 +68,39 @@ helm upgrade --install aatt-ps-rag ./chart/ps-rag -f values.yml
 
 Helm will install:
 
-* **ChromaDB Deployment + Service**
-* **Retriever Deployment + Service** (FastAPI wrapper around Chroma)
-* **FastAPI RAG Deployment** (automatically points to the retriever Service)
-* **Optional vector-builder Job** (runs once to populate Chroma)
+* A chromadb vector store with an API wrapper exposing a `/retrieve` endpoint
+* A one-time job to populate the vector store
+* An API wrapper for the RAG application exposing a `/query` endpoint
 
-Check the deployment:
+Check the progess of the builder job:
+
+```bash
+kubectl logs job/aatt-ps-rag-build-vector-db
+```
+
+Once the builder job has completed, ensure that the retrieval and rag apis
+enter the running state:
 
 ```bash
 kubectl get pods
 ```
 
-If the builder job is enabled:
+# 🔌 Access the APIs from Your Local Machine
+
+You can access the APIs by forwarding the relevant port to your local machine. 
+
+Identify the service name and cluster port
 
 ```bash
-kubectl logs job/ps-rag-builder
+kubetl get svc | grep aatt-ps-rag
+
+> aatt-ps-rag-api         NodePort    XX.XX.XXX.XX    <none>        8080:30080/TCP                                 2d
 ```
 
----
-
-# 🔌 Access the API from Your Local Machine
-
-Forward port **8080** from the Kubernetes API deployment:
+Forward the port:
 
 ```bash
-kubectl port-forward deploy/ps-rag-api 8080:8080
+kubectl port-forward svc/aatt-ps-rag-api 8080:8080
 ```
 
 The API is now available at:
@@ -109,8 +108,6 @@ The API is now available at:
 ```
 http://localhost:8080/query
 ```
-
----
 
 # 🧪 Test the Deployment
 
@@ -132,23 +129,24 @@ Expected response:
 }
 ```
 
-If something seems wrong, inspect logs:
-
-```bash
-kubectl logs deploy/ps-rag-api
-kubectl logs job/ps-rag-builder
-```
-
----
-
 # 🐍 Optional: Python Client
 
 A minimal SDK is provided:
 
+#### Rag
 ```python
 from ps_rag import PracticeStatementRagClient
 
 client = PracticeStatementRagClient("http://localhost:8080")
 response = client.invoke("Summarize the ICAP waiver requirements.")
+print(response)
+```
+
+#### Retriever
+```python
+from ps_rag import PracticeStatementRetrieverClient
+
+client = PracticeStatementRagClient("http://localhost:8081")
+response = client.retrieve("Summarize the ICAP waiver requirements.")
 print(response)
 ```
