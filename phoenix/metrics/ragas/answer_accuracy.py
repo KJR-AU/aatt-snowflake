@@ -1,7 +1,7 @@
 ## Define an evaluator using a RAGAS metric: answer accuracy
 from ragas.metrics import AnswerAccuracy
 from ragas.dataset_schema import SingleTurnSample
-from model import evaluation_llm
+from .model import evaluation_llm
 
 ragas_answer_accuracy_evaluator = AnswerAccuracy(llm=evaluation_llm)
 
