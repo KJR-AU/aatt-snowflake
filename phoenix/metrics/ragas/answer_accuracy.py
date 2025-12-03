@@ -1,12 +1,9 @@
 ## Define an evaluator using a RAGAS metric: answer accuracy
 from ragas.metrics import AnswerAccuracy
-from ragas.llms import llm_factory
 from ragas.dataset_schema import SingleTurnSample
-import os
+from model import evaluation_llm
 
-evaluation_model_name: str = os.getenv("EVALUATION_MODEL", "gpt-4o-mini")
-ragas_eval_llm = llm_factory(evaluation_model_name)
-ragas_answer_accuracy_evaluator = AnswerAccuracy(llm=ragas_eval_llm)
+ragas_answer_accuracy_evaluator = AnswerAccuracy(llm=evaluation_llm)
 
 def answer_accuracy_evaluator(input, output, reference):
     # In the context of an evaluator, input still refers to the input field
