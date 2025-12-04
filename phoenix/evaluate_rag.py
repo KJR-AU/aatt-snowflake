@@ -1,7 +1,6 @@
 from client import client
 import sys
 sys.path.append("..")
-from ps_rag.src.client import PracticeStatementRagClient
 from metrics.ragas import answer_accuracy_evaluator
 from metrics.phoenix import spelling_evaluator
 from metrics.deepeval import answer_relevance_evaluator
