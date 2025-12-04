@@ -8,11 +8,11 @@ def answer_relevance_evaluator(input, output):
     metric = AnswerRelevancyMetric(
         threshold=0.7,
         model=evaluation_model_name,
-        include_reason=False
+        include_reason=True
     )
     test_case = LLMTestCase(
         input=list(input.values())[0],
         actual_output=output
     )
     metric.measure(test_case)
-    return metric.score
+    return metric.score, metric.reason
